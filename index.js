@@ -19,9 +19,17 @@ app.use(express.urlencoded({extended: true}));
 app.use(methodOverride('_method'))
 categories = ['fruit', 'vegetable', 'dairy', 'drink']
 
-app.get('/products', async (req, res) => {0
-    const products = await Product.find({})
-    res.render('products', {products});
+app.get('/products', async (req, res) => {
+    const {category} = req.query;
+    // console.log(category);
+    if(category) {
+        const products = await Product.find({category: category});
+        res.render('products', {products, category})
+    } else {
+        const products = await Product.find({})
+        res.render('products', {products, category: "All Products"});
+    }
+
 })
 
 app.get('/products/new', (req, res) => {
@@ -54,6 +62,7 @@ app.put('/products/:id', async (req, res) => {
     await Product.findByIdAndUpdate(id, req.body, {runValidators: true, new: true})
     .then((r) => console.log(r))
     .catch((e) => console.log(e))
+    res.redirect(`/products/${id}`);
 })
 
 app.delete('/products/:id', async (req, res) => {

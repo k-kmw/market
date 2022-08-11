@@ -10,13 +10,15 @@
     <h1><%=product.name%></h1>
     <ul>
         <li>price: <%=product.price%></li>
-        <li>category: <%=product.category%></li>
+        <li>category: <a href="/products?category=<%=product.category%>"><%=product.category%></a></li>
     </ul>
 
-    <a href="/products">Home</a>
-    <a href="/products/<%=product._id%>/edit">Edit</a>
-    <form method="POST" action="/products/<%=product._id%>?_method=DELETE">
-        <button>delete</button>
-    </form>
+    <div class="btn__container">
+        <button class="home__btn"><a href="/products">Home</a></button>
+        <button class="edit__btn"><a href="/products/<%=product._id%>/edit">Edit</a></button>
+        <form method="POST" action="/products/<%=product._id%>?_method=DELETE">
+            <button>delete</button>
+        </form>
+    </div>
 </body>
 </html>
