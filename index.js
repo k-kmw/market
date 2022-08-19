@@ -4,8 +4,9 @@ const path = require('path')
 const methodOverride = require('method-override')
 const mongoose = require('mongoose');
 const Product = require('./models/product');
+const Farm = require('./models/farm');
 
-mongoose.connect('mongodb://localhost:27017/market', {useNewUrlParser: true})
+mongoose.connect('mongodb://localhost:27017/market2', {useNewUrlParser: true})
 .then(()=> {
     console.log('MONGO CONNECTION')
 })
@@ -19,27 +20,78 @@ app.use(express.urlencoded({extended: true}));
 app.use(methodOverride('_method'))
 categories = ['fruit', 'vegetable', 'dairy', 'drink']
 
+
+// Farms Route
+app.get('/farms', async (req, res) => {
+    const farms = await Farm.find({});
+    // console.log(farms)
+    res.render('farms/index', {farms})
+})
+
+app.get('/farms/new', (req, res) => {
+    res.render('farms/new')
+})
+
+app.get('/farms/:id', async (req, res) => {
+    const {id} = req.params;
+    // console.log(req.params);
+    const farm = await Farm.findById(id).populate('products')
+    // console.log(farm);
+    res.render('farms/detail', {farm})
+})
+
+app.get('/farms/:id/products/new', async (req, res) => {
+    const {id} = req.params;
+    const farm = await Farm.findById(id);
+    res.render('products/new', {farm, categories});
+})
+
+app.post('/farms/:id/products', async(req, res) => {
+    const {id} = req.params;
+    const product = new Product(req.body);
+    const farm = await Farm.findById(id);
+    farm.products.push(product);
+    product.farm = farm;
+    await farm.save();
+    await product.save();
+    res.redirect(`/farms/${id}`)
+})
+
+app.post('/farms', async(req, res) => {
+    const farm = new Farm(req.body);
+    // console.log(farm);
+    await farm.save();
+    res.redirect('/farms')
+})
+
+app.delete('/farms/:id', async(req, res) => {
+    const farm = await Farm.findByIdAndDelete(req.params.id);
+    res.redirect('/farms')
+})
+
+
+// products Route
 app.get('/products', async (req, res) => {
     const {category} = req.query;
     // console.log(category);
     if(category) {
         const products = await Product.find({category: category});
-        res.render('products', {products, category})
+        res.render('products/products', {products, category})
     } else {
         const products = await Product.find({})
-        res.render('products', {products, category: "All Products"});
+        res.render('products/products', {products, category: "All Products"});
     }
 
 })
 
 app.get('/products/new', (req, res) => {
-    res.render('new', {categories});
+    res.render('products/new', {categories});
 })
 
 app.get('/products/:id', async (req, res) => {
     const {id} = req.params
     const product = await Product.findById(id);
-    res.render('detail', {product})
+    res.render('products/detail', {product})
 })
 
 app.post('/products', async (req, res)=> {
@@ -53,7 +105,7 @@ app.post('/products', async (req, res)=> {
 app.get('/products/:id/edit', async (req, res) => {
     const {id} = req.params;
     const product = await Product.findById(id);
-    res.render('edit', {product, categories});
+    res.render('products/edit', {product, categories});
 })
 
 app.put('/products/:id', async (req, res) => {
